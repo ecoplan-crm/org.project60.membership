@@ -444,13 +444,14 @@ class CRM_Admin_Form_Setting_MembershipExtension extends CRM_Admin_Form_Setting 
     //  3) indexed
 
     // if there is eligible groups, look for fields
+    // Issue 50 fixed
     if (!empty($custom_group_ids)) {
       $custom_fields = civicrm_api3('CustomField', 'get', array(
           'custom_group_id' => array('IN' => $custom_group_ids),
           'data_type'       => 'Money',
           'is_active'       => 1,
           'is_searchable'   => 1,
-          'is_view'         => $read_only ? '1' : '0',
+          'is_view'         => $read_only ? '1' : NULL,
           'return'          => 'id,label'));
       foreach ($custom_fields['values'] as $custom_field) {
         $options[$custom_field['id']] = $custom_field['label'];
