@@ -21,13 +21,15 @@ use CRM_Membership_ExtensionUtil as E;
  * to memberships
  * @see https://github.com/Project60/org.project60.membership/issues/10
  */
-class CRM_Membership_NumberLogic {
+class CRM_Membership_NumberLogic
+{
 
     /**
      * Inject membership number into summary view
      *  if the configuration option is set
      */
-    public static function adjustSummaryView($contact_id) {
+    public static function adjustSummaryView($contact_id)
+    {
         $settings = CRM_Membership_Settings::getSettings();
         if ($settings->getSetting('membership_number_show')) {
             // get membership number(s)
@@ -54,7 +56,8 @@ class CRM_Membership_NumberLogic {
      * @return array contact id => membership number
      * @throws API_Exception
      */
-    public static function getCurrentMembershipNumbers($contact_ids, $membership_type_ids = NULL) {
+    public static function getCurrentMembershipNumbers($contact_ids, $membership_type_ids = NULL)
+    {
         $contact_id_2_membership_number = array();
 
         // load field and group
@@ -64,10 +67,10 @@ class CRM_Membership_NumberLogic {
             return $contact_id_2_membership_number;
         }
         $field = civicrm_api3('CustomField', 'getsingle', array(
-            'id'     => $number_field_id,
+            'id' => $number_field_id,
             'return' => 'column_name,custom_group_id'));
         $group = civicrm_api3('CustomGroup', 'getsingle', array(
-            'id'     => $field['custom_group_id'],
+            'id' => $field['custom_group_id'],
             'return' => 'table_name'));
 
         // build SQL query
@@ -180,7 +183,8 @@ class CRM_Membership_NumberLogic {
      *
      * @param $params the parameters as picked up from the preHook
      */
-    public static function generateNewNumber(&$params) {
+    public static function generateNewNumber(&$params)
+    {
         $settings = CRM_Membership_Settings::getSettings();
         $field_id = $settings->getSetting('membership_number_field');
         $generator = $settings->getSetting('membership_number_generator');
@@ -202,58 +206,70 @@ class CRM_Membership_NumberLogic {
      * @param $params
      * @return string
      */
-    protected static function generateNumber($generator, $params) {
+    protected static function generateNumber($generator, $params)
+    {
         $number = $generator;
+        $membership_type_id = $params['membership_type_id'];
+        if ($membership_type_id == "1") {
+            $membershipsQuery = "SELECT count(id) FROM civicrm_membership WHERE membership_type_id=$membership_type_id 
+                                           and join_date BETWEEN CONCAT(year(curdate()), '-01-01') 
+                                               AND CONCAT(year(curdate()), '-12-31');";
 
-        // replace {mid+x} patterns
-        if (preg_match('#\{mid(?P<offset>[+-][0-9]+)?\}#', $number, $matches)) {
-            // get the next membership ID
-            // FIXME: this is not very reliable
-            if(preg_match('#\{YYYY0\}#', $number) ||
-                preg_match('#\{YY0\}#', $number)) {
-                $membershipsQuery = "SELECT count(id) FROM civicrm_membership WHERE join_date BETWEEN 
+            $midDatabaseCount = CRM_Core_DAO::singleValueQuery($membershipsQuery);
+
+            $midCount = 9999 - $midDatabaseCount;
+
+            $number = date("Y") . $midCount;
+        } else {
+            // replace {mid+x} patterns
+            if (preg_match('#\{mid(?P<offset>[+-][0-9]+)?\}#', $number, $matches)) {
+                // get the next membership ID
+                // FIXME: this is not very reliable
+                if (preg_match('#\{YYYY0\}#', $number) ||
+                    preg_match('#\{YY0\}#', $number)) {
+                    $membershipsQuery = "SELECT count(id) FROM civicrm_membership WHERE join_date BETWEEN 
                     CONCAT(year(curdate()), '-01-01') AND CONCAT(year(curdate()), '-12-31');";
-            } else {
-                $membershipsQuery = "SELECT MAX(id) FROM civicrm_membership;";
-            }
-
-            $mid = CRM_Core_DAO::singleValueQuery($membershipsQuery) + 1;
-            if (!empty($matches['offset'])) {
-                if (substr($matches['offset'], 0, 1) == '-') {
-                    $mid -= substr($matches['offset'], 1);
                 } else {
-                    $mid += substr($matches['offset'], 1);
+                    $membershipsQuery = "SELECT MAX(id) FROM civicrm_membership;";
                 }
-            }
-            $number = preg_replace('#\{mid(?P<offset>[+-][0-9]+)?\}#', $mid, $number);
-        }
 
-
-        // replace {cid+x} patterns
-        if (preg_match('#\{cid(?P<offset>[+-][0-9]+)?\}#', $number, $matches)) {
-            // get the next membership ID
-            $cid = $params['contact_id'];
-            if (!empty($matches['offset'])) {
-                if (substr($matches['offset'], 0, 1) == '-') {
-                    $cid -= substr($matches['offset'], 1);
-                } else {
-                    $cid += substr($matches['offset'], 1);
+                $mid = CRM_Core_DAO::singleValueQuery($membershipsQuery) + 1;
+                if (!empty($matches['offset'])) {
+                    if (substr($matches['offset'], 0, 1) == '-') {
+                        $mid -= substr($matches['offset'], 1);
+                    } else {
+                        $mid += substr($matches['offset'], 1);
+                    }
                 }
+                $number = preg_replace('#\{mid(?P<offset>[+-][0-9]+)?\}#', $mid, $number);
             }
-            $number = preg_replace('#\{cid(?P<offset>[+-][0-9]+)?\}#', $mid, $number);
-        }
 
-        // replace {cid+x} patterns
-        if (preg_match('#\{YY0?\}#', $number, $matches)) {
-            $number = preg_replace('#\{YY0?\}#', date('y'), $number);
-        }
 
-        // replace {cid+x} patterns
-        if (preg_match('#\{YYYY0?\}#', $number, $matches)) {
-            $number = preg_replace('#\{YYYY0?\}#', date('Y'), $number);
-        }
-        // TODO: implement {seq:x} pattern
+            // replace {cid+x} patterns
+            if (preg_match('#\{cid(?P<offset>[+-][0-9]+)?\}#', $number, $matches)) {
+                // get the next membership ID
+                $cid = $params['contact_id'];
+                if (!empty($matches['offset'])) {
+                    if (substr($matches['offset'], 0, 1) == '-') {
+                        $cid -= substr($matches['offset'], 1);
+                    } else {
+                        $cid += substr($matches['offset'], 1);
+                    }
+                }
+                $number = preg_replace('#\{cid(?P<offset>[+-][0-9]+)?\}#', $mid, $number);
+            }
 
+            // replace {cid+x} patterns
+            if (preg_match('#\{YY0?\}#', $number, $matches)) {
+                $number = preg_replace('#\{YY0?\}#', date('y'), $number);
+            }
+
+            // replace {cid+x} patterns
+            if (preg_match('#\{YYYY0?\}#', $number, $matches)) {
+                $number = preg_replace('#\{YYYY0?\}#', date('Y'), $number);
+            }
+            // TODO: implement {seq:x} pattern
+        }
         return $number;
     }
 }
