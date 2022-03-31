@@ -220,12 +220,12 @@ class CRM_Membership_NumberLogic
             $midCount = 9999 - $midDatabaseCount;
 
             $number = date("Y") . $midCount;
-        } else {
+        } else if($membership_type_id == 2) {
             // replace {mid+x} patterns
             if (preg_match('#\{mid(?P<offset>[+-][0-9]+)?\}#', $number, $matches)) {
                 // get the next membership ID
                 // FIXME: this is not very reliable
-                if (preg_match('#\{YYYY0\}#', $number) ||
+                if(preg_match('#\{YYYY0\}#', $number) ||
                     preg_match('#\{YY0\}#', $number)) {
                     $membershipsQuery = "SELECT count(id) FROM civicrm_membership WHERE join_date BETWEEN 
                     CONCAT(year(curdate()), '-01-01') AND CONCAT(year(curdate()), '-12-31');";
@@ -241,7 +241,7 @@ class CRM_Membership_NumberLogic
                         $mid += substr($matches['offset'], 1);
                     }
                 }
-                $number = preg_replace('#\{mid(?P<offset>[+-][0-9]+)?\}#', $mid, $number);
+                $number = preg_replace('#\{mid(?P<offset>[+-][0-9]+)?\}#', sprintf('%04d', $mid), $number);
             }
 
 
@@ -269,7 +269,10 @@ class CRM_Membership_NumberLogic
                 $number = preg_replace('#\{YYYY0?\}#', date('Y'), $number);
             }
             // TODO: implement {seq:x} pattern
+        } else {
+            $number = '';
         }
+
         return $number;
     }
 }
