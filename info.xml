@@ -21,7 +21,9 @@
     <url desc="Support">https://github.com/Project60/org.project60.membership/issues/new</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
-  <comments></comments>
+  <comments>
+    ECOPLAN fork
+  </comments>
   <civix>
     <namespace>CRM/Membership</namespace>
   </civix>
