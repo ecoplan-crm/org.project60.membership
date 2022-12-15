@@ -16,7 +16,7 @@
     <ver>5.19</ver>
   </compatibility>
   <urls>
-    <url desc="Main Extension Page">https://github.com/Project60/org.project60.membership</url>
+    <url desc="Main Extension Page">https://github.com/ecoplan-crm/org.project60.membership</url>
     <url desc="Documentation">https://github.com/Project60/org.project60.membership</url>
     <url desc="Support">https://github.com/Project60/org.project60.membership/issues/new</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
