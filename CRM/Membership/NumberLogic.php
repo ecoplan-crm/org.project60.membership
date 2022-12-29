@@ -241,6 +241,7 @@ class CRM_Membership_NumberLogic {
                 }
             }
             $number = preg_replace('#\{cid(?P<offset>[+-][0-9]+)?\}#', $cid, $number);
+            // $number = preg_replace('#\{mid(?P<offset>[+-][0-9]+)?\}#', sprintf('%04d', $mid), $number);            
         }
 
         // replace {cid+x} patterns
