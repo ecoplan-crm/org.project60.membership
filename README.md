@@ -24,7 +24,6 @@ This extension currently (version 0.3) offers only two features:
    4. ``custom_fee``: If you have a custom field with your membership defining the expected yearly fee, you can set the field name here (e.g. "custom_28"). Otherwise the minimum fee as defined by the membership type is used.
    5. ``custom_interval``: If you have a custom field with your membership defining the payment cycle, you can set the field name here (e.g. "custom_29"). The values here refer to the number of months, i.e. "1" indicates monthly payment, "3" quarterly, and so on. Otherwise the period defined by the membership type is used.
 
-
 What's next?
 ===
 Well, that depends a lot on you. If you want to use this extension it's probably best to contact us: 
